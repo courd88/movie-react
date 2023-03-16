@@ -1,0 +1,41 @@
+version: '3.3'
+services:
+  movie-mysql:
+    # image: mysql:5.7
+    image: okool/movie-mysql-image:v2
+    ports:
+      - 5506:3306
+    # environment:
+    #   - MYSQL_ROOT_PASSWORD=root
+    #   - MYSQL_DATABASE=movie
+    volumes:
+      # - /c/java/eclipse-workspace/movie/movie_data:/var/lib/mysql
+      - /c:/docker/movie_data:/var/lib/mysql
+    # restart: always
+
+  movie-springboot:
+    depends_on:
+      - movie-mysql
+    image: okool/movie-springboot-image:v1
+    ports:
+      - 8080:8080
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_SERVER=movie-mysql
+      - MYSQL_PORT=3306
+    # restart: always
+
+  movie-react:
+    depends_on:
+      - movie-springboot
+    # image: okool/movie-react-image:v1
+    build:
+      context: https://github.com/OKOOI/movie-react.git#main
+      # dockerfile: Dockerfile
+      args:
+        - GIT_REPOSITORY_ADDRESS=https://github.com/OKOOI/movie-react.git
+        - REST_API_SERVER_IP=192.168.0.46
+        - REST_API_SERVER_PORT=8080
+    ports:
+      - 80:80
